@@ -76,8 +76,9 @@ been tested. Reports welcome — see [`docs/PROTOCOL.md` §6](docs/PROTOCOL.md).
 ## Device access, and the vendor web driver
 
 The shipped udev rule (`packaging/70-mchose-adv.rules`) grants the active local
-user read/write access to **every MCHOSE hidraw node**, which fixes two things
-at once:
+user read/write access to the **hidraw nodes of the Ace 68 -III (`3837:3003`)**,
+which fixes two things at once. For another MCHOSE model, add a copy of the rule
+line with that model's `idProduct`:
 
 1. **This bridge**, which needs read access to USB interface 2.
 2. **The vendor web driver** (M-HUB in Chrome/Edge/Opera), which needs read
@@ -87,8 +88,13 @@ at once:
    one supersedes it and you can remove yours.
 
 ```udev
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3837", MODE="0660", GROUP="input", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3837", ATTRS{idProduct}=="3003", MODE="0660", GROUP="input", TAG+="uaccess"
 ```
+
+Security note: any process running as that user can then read the keyboard's
+raw reports and, via `/dev/uinput`, inject keystrokes. Likewise, membership in
+the `input` group exposes **all** input devices (`/dev/input/event*`) to that
+account — a keylogger-grade privilege — so add yourself only if you need it.
 
 The rule sets `MODE`/`GROUP` in addition to `TAG+="uaccess"` so it also works
 for a systemd *user* service, which may not see the active-session ACL that

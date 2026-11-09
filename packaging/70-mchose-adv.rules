@@ -1,7 +1,7 @@
-# MCHOSE devices report under vendor id 3837; the Ace 68 -III is 3837:3003.
+# MCHOSE Ace 68 -III is 3837:3003.
 #
-# This grants the active local user read/write access to every MCHOSE hidraw
-# node. That covers two separate things:
+# This grants the active local user read/write access to the hidraw nodes of
+# that keyboard. That covers two separate things:
 #
 #   1. mchose-adv itself, which needs READ access to USB interface 2 -- where
 #      the keyboard sends keys resolved by its advanced-key features
@@ -17,10 +17,12 @@
 # a systemd user service, which may not see the active-session ACL that
 # TAG+="uaccess" relies on.
 #
-# VID-only matching covers the other MCHOSE models that share this vendor id.
-# Narrow it to ATTRS{idProduct}=="3003" if you prefer.
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3837", MODE="0660", GROUP="input", TAG+="uaccess"
-SUBSYSTEM=="usb",    ATTRS{idVendor}=="3837", MODE="0660", GROUP="input", TAG+="uaccess"
+# Matching is deliberately limited to this one product id, and to hidraw only
+# (no raw SUBSYSTEM=="usb" access, which neither the daemon nor WebHID needs).
+# For another MCHOSE model, copy the line and change idProduct; widening it to
+# the whole vendor id (drop the idProduct match) is possible but grants access
+# to every MCHOSE device.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3837", ATTRS{idProduct}=="3003", MODE="0660", GROUP="input", TAG+="uaccess"
 
 # Needed to create the virtual keyboard that re-emits the advanced keys.
 # Most desktops already do this (80-uinput.rules); repeated here so the package
